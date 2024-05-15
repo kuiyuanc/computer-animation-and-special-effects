@@ -135,7 +135,7 @@ int main() {
     auto fkskeleton = std::make_unique<acclaim::Skeleton>(acclaim_folder / "walker.asf", 0.2);
     acclaim::Motion firstAnimation =
         acclaim::Motion(acclaim_folder / "walk_fwd_circle.amc",std::make_unique<acclaim::Skeleton>(*fkskeleton));
-    acclaim::Motion secondAnimation = 
+    acclaim::Motion secondAnimation =
         acclaim::Motion(acclaim_folder / "walk_fwd_curve1.amc", std::make_unique<acclaim::Skeleton>(*fkskeleton));
     acclaim::Motion thirdAnimation =
         acclaim::Motion(acclaim_folder / "walk_fwd_curve2.amc", std::make_unique<acclaim::Skeleton>(*fkskeleton));
@@ -220,7 +220,7 @@ int main() {
         }
         for (int i = 0;i<3;i++)
             changed[i] = false;
-        
+
         // Regenerate Matrix
         if (needRegenerate)
         {
@@ -233,7 +233,7 @@ int main() {
             // segmentSize + blendingFrame + threshold;
             needRegenerate = false;
         }
-        
+
         // Call to decide next Frame
         if (isPlaying) {
             ++currentFrame;
@@ -285,7 +285,7 @@ int main() {
             secondAnimation.getSkeleton()->render(&renderProgram);
         else
             thirdAnimation.getSkeleton()->render(&renderProgram);*/
-        
+
         // 3. Render the skybox .
         skyboxRenderProgram.use();
         skyboxRenderProgram.setUniform("projection", currentCamera->getProjectionMatrix());
@@ -325,7 +325,7 @@ GLFWwindow* initialize() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     // Create GLFW context
-    GLFWwindow* window = glfwCreateWindow(g_ScreenWidth, g_ScreenHeight, "Inverse Kinematics", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(g_ScreenWidth, g_ScreenHeight, "110550035", nullptr, nullptr);
     if (window == nullptr) {
         std::cerr << "Failed to create OpenGL 4.1 window!" << std::endl;
         return nullptr;
