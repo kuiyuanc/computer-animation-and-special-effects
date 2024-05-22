@@ -203,6 +203,7 @@ void MotionGraph::constructGraph() {
 
 void MotionGraph::traverse() {
     // srand((int) &current);
+    srand(42);
     currIdx = nextIdx;
     currSegment = nextSegment;
 
