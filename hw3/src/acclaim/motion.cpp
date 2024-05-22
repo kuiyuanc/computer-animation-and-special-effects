@@ -101,6 +101,19 @@ Motion blend(Motion bm1, Motion bm2, const std::vector<double> &weight) {
     //       bm1: tail of m1, bm2: head of m2
     //       You can assume that m2's root position and orientation is aleady aligned with m1 before blending.
     //       In other words, m2.transform(...) will be called before m1.blending(m2, blendWeight, blendWindowSize) is called
+    Motion bm(bm1);
+    for (auto i = 0; i < weight.size(); ++i) {
+        auto interpolation = bm1.getPosture(i);
+
+        interpolation.bone_translations.front() = bm1.getPosture(i).bone_translations.front() * (1 - weight[i]) + bm2.getPosture(i).bone_translations.front() * weight[i];
+
+        auto rot1 = util::rotateDegreeZYX(bm1.getPosture(i).bone_rotations.front()), rot2 = util::rotateDegreeZYX(bm2.getPosture(i).bone_rotations.front());
+        auto rot = rot1.slerp(weight[i], rot2);
+        interpolation.bone_rotations.front().head<3>() = rot.vec().head<3>();
+
+        bm.setPosture(i, interpolation);
+    }
+    return bm;
 }
 
 Motion Motion::blending(Motion &m2, const std::vector<double> &blendWeight, int blendWindowSize) {
