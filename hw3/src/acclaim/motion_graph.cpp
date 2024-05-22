@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <algorithm>
+#include <numeric>
 #include "acclaim/motion_graph.h"
 #include "acclaim/motion.h"
 #include "acclaim/posture.h"
@@ -173,19 +175,29 @@ void MotionGraph::constructGraph() {
         // **TODO**
         // Task: For each node in the motion graph, construct the edge using MotionNode::addEdgeTo()
         // Hint: 1. Each node in m_graph represents a motion segment from the original three motion clips.
-        // 
+        //
         //       2. An outgoing edge from m_graph[i] to m_graph[j] can be constructed under two circumstances:
         //              (a) j = i+1, which means these are two consecutive segments from a original motion clip
         //              (b) distMatrix[i][j] < edgeCostThreshold
         //          Circumstance (a) should NOT be applied when m_graph[i] is the final segment of a motion clip.
-        // 
+        //
         //       3. You can freely decide how to distribute the edge weights for each node, as long as it produces a reasonable graph.
         //          One way is to give a constant weight to the edge pointing to the node's consecutive segment (eg. 0.5),
         //          and for the rest edges, the weight is distributed by the values in distMatrix[i][j], the higher the distance, the smaller the weight
         //          Make sure that the sum of weights of all outgoing edges should be 1.0 for every node.
-        // 
+        //
         //       4. It is okay for the nodes which represent the final segment of the motion clips to have zero outgoing edges.
         //          You can also prune some existing edges to get a better result.
+        for (auto j = 0; j < numNodes; ++j) {
+            if (j != i + 1 && edgeCostThreshold < distMatrix[i][j]) continue;
+            m_graph[i].addEdgeTo(j, j == i + 1 ? 0.5 : 1 / distMatrix[i][j]);
+        }
+
+        // normalize
+        auto sum = std::accumulate(m_graph[i].weight, m_graph[i].weight + m_graph[i].num_edges, 0.0);
+        std::for_each(m_graph[i].weight, m_graph[i].weight + m_graph[i].num_edges, [&](double& d) { d /= sum; });
+
+        // prune
     }
 }
 
