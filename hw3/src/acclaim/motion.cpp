@@ -61,16 +61,16 @@ void Motion::concatenate(Motion &m2) {
         postures.insert(postures.end(), m2.postures[i]);
 }
 
-Posture& Motion::getPosture(int FrameNum) { 
-    return postures[FrameNum]; 
+Posture& Motion::getPosture(int FrameNum) {
+    return postures[FrameNum];
 }
 
-std::vector<Posture> Motion::getPostures() { 
-    return postures; 
+std::vector<Posture> Motion::getPostures() {
+    return postures;
 }
 
 void Motion::setPosture(int FrameNum, const Posture &InPosture) {
-    postures[FrameNum] = InPosture; 
+    postures[FrameNum] = InPosture;
 }
 
 int Motion::getFrameNum() const { return static_cast<int>(postures.size()); }
@@ -80,16 +80,24 @@ void Motion::forwardkinematics(int frame_idx) {
     skeleton->setModelMatrices();
 }
 
-void Motion::transform(double newFacing, const Eigen::Vector3d &newPosition) {
+void Motion::transform(double newFacing, const Eigen::Vector3d &newPosition){
     // **TODO**
-    // Task: Transform the whole motion segment so that the root bone of the first posture(first frame) 
+    // Task: Transform the whole motion segment so that the root bone of the first posture(first frame)
     //       of the motion is located at newPosition, and its facing be newFacing.
     //       The whole motion segment must remain continuous.
+    auto rot = util::rotateDegreeZYX(postures.front().bone_rotations.front()).toRotationMatrix();
+    auto old_facing = atan(rot(0, 2) / rot(2, 2));
+    auto rot_old_new = util::rotateRadianZYX(0, newFacing - old_facing, 0);
+    auto old_pos = postures.front().bone_translations.front();
+    for (auto &p : postures) {
+        p.bone_rotations.front().head<3>() = (rot_old_new * util::rotateDegreeZYX(p.bone_rotations.front())).vec();
+        p.bone_translations.front().head<3>() = newPosition + rot_old_new * (p.bone_translations.front() - old_pos).head<3>();
+    }
 }
 
 Motion blend(Motion bm1, Motion bm2, const std::vector<double> &weight) {
     // **TODO**
-    // Task: Return a motion segment that blends bm1 and bm2.  
+    // Task: Return a motion segment that blends bm1 and bm2.
     //       bm1: tail of m1, bm2: head of m2
     //       You can assume that m2's root position and orientation is aleady aligned with m1 before blending.
     //       In other words, m2.transform(...) will be called before m1.blending(m2, blendWeight, blendWindowSize) is called
