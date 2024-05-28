@@ -199,8 +199,6 @@ void MotionGraph::constructGraph() {
         // normalize
         auto sum = std::accumulate(m_graph[i].weight, m_graph[i].weight + m_graph[i].num_edges, 0.0);
         std::for_each(m_graph[i].weight, m_graph[i].weight + m_graph[i].num_edges, [&](double& d) { d /= sum; });
-
-        // prune
     }
 }
 
