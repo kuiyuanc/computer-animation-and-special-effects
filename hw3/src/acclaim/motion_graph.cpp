@@ -230,15 +230,17 @@ void MotionGraph::traverse() {
     } else {
         printf("rand: %lf, sum: %lf, jump from %d to %d\n", prob, sum, currIdx, nextIdx);
         Posture lastPose = currSegment.getPosture(currSegment.getFrameNum() - blendWindowSize);
-        double faceAng = lastPose.getFacingAngle();
-        segmentList[nextIdx].transform(faceAng, lastPose.bone_translations[0].head<3>());
+        // double faceAng = lastPose.getFacingAngle();
+        // segmentList[nextIdx].transform(faceAng, lastPose.bone_translations[0].head<3>());
+        segmentList[nextIdx].transform(lastPose.bone_rotations.front(), lastPose.bone_translations[0].head<3>());
         nextSegment = segmentList[nextIdx];
         Motion bm = currSegment.blending(nextSegment, blendWeights, blendWindowSize);
 
         for (int i = nextIdx; isNotInVector(EndSegments, i);) {
             lastPose = segmentList[i].getPosture(segmentList[i].getFrameNum() - 1);
-            faceAng = lastPose.getFacingAngle();
-            segmentList[++i].transform(faceAng, lastPose.bone_translations[0].head<3>());
+            // faceAng = lastPose.getFacingAngle();
+            // segmentList[++i].transform(faceAng, lastPose.bone_translations[0].head<3>());
+            segmentList[++i].transform(lastPose.bone_rotations.front(), lastPose.bone_translations[0].head<3>());
         }
 
         Motion tempCurr(currSegment);
