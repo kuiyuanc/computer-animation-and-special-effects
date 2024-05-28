@@ -80,18 +80,25 @@ void Motion::forwardkinematics(int frame_idx) {
     skeleton->setModelMatrices();
 }
 
-void Motion::transform(double newFacing, const Eigen::Vector3d &newPosition){
+void Motion::transform(Eigen::Vector4d &newFacing, const Eigen::Vector3d &newPosition){
     // **TODO**
     // Task: Transform the whole motion segment so that the root bone of the first posture(first frame)
     //       of the motion is located at newPosition, and its facing be newFacing.
     //       The whole motion segment must remain continuous.
-    auto rot = util::rotateDegreeZYX(postures.front().bone_rotations.front()).toRotationMatrix();
-    auto old_facing = atan(rot(0, 2) / rot(2, 2));
-    auto rot_old_new = util::rotateRadianZYX(0, newFacing - old_facing, 0);
-    auto old_pos = postures.front().bone_translations.front();
-    for (auto &p : postures) {
-        p.bone_rotations.front().head<3>() = (rot_old_new * util::rotateDegreeZYX(p.bone_rotations.front())).vec();
-        p.bone_translations.front().head<3>() = newPosition + rot_old_new * (p.bone_translations.front() - old_pos).head<3>();
+    constexpr long double pi = 3.1415926535897932384626433832795;
+
+    const Eigen::Matrix3d rot_old = util::rotateDegreeZYX(postures.front().bone_rotations.front()).toRotationMatrix();
+    const double theta_old = atan2(rot_old(0, 2), rot_old(2, 2)) * 180 / pi, theta_new = newFacing.head<3>()[1];
+    const Eigen::Quaterniond rot = util::rotateDegreeZYX(0, theta_new - theta_old, 0);
+
+    const Eigen::Vector3d old_pos = postures.front().bone_translations.front().head<3>();
+
+    for (Posture &p : postures) {
+        Eigen::Quaterniond rot_new = rot * util::rotateDegreeZYX(p.bone_rotations.front());
+        p.bone_rotations.front().head<3>() = rot_new.toRotationMatrix().eulerAngles(2, 1, 0) * 180.0 / pi;
+        std::swap(p.bone_rotations.front()[0], p.bone_rotations.front()[2]);
+
+        p.bone_translations.front().head<3>() = newPosition + rot * (p.bone_translations.front().head<3>() - old_pos);
     }
 }
 
