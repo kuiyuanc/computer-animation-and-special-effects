@@ -107,16 +107,21 @@ Motion blend(Motion bm1, Motion bm2, const std::vector<double> &weight) {
     // Task: Return a motion segment that blends bm1 and bm2.
     //       bm1: tail of m1, bm2: head of m2
     //       You can assume that m2's root position and orientation is aleady aligned with m1 before blending.
-    //       In other words, m2.transform(...) will be called before m1.blending(m2, blendWeight, blendWindowSize) is called
-    Motion bm(bm1);
+    //       In other words, m2.transform(...) will be called before m1.blending(m2, blendWeight, blendWindowSize) is
+    //       called
+    constexpr long double pi = 3.1415926535897932384626433832795;
+
+    Motion bm = bm1;
     for (auto i = 0; i < weight.size(); ++i) {
-        auto interpolation = bm1.getPosture(i);
+        acclaim::Posture interpolation = bm1.getPosture(i);
 
-        interpolation.bone_translations.front() = bm1.getPosture(i).bone_translations.front() * (1 - weight[i]) + bm2.getPosture(i).bone_translations.front() * weight[i];
+        interpolation.bone_translations.front() = bm1.getPosture(i).bone_translations.front() * (1 - weight[i]) +
+                                                  bm2.getPosture(i).bone_translations.front() * weight[i];
 
-        auto rot1 = util::rotateDegreeZYX(bm1.getPosture(i).bone_rotations.front()), rot2 = util::rotateDegreeZYX(bm2.getPosture(i).bone_rotations.front());
-        auto rot = rot1.slerp(weight[i], rot2);
-        interpolation.bone_rotations.front().head<3>() = rot.vec().head<3>();
+        Eigen::Quaterniond rot1 = util::rotateDegreeZYX(bm1.getPosture(i).bone_rotations.front()),
+                           rot2 = util::rotateDegreeZYX(bm2.getPosture(i).bone_rotations.front());
+        interpolation.bone_rotations.front().head<3>() = rot1.slerp(weight[i], rot2).toRotationMatrix().eulerAngles(2, 1, 0) * 180.0 / pi;
+        std::swap(interpolation.bone_rotations.front()[0], interpolation.bone_rotations.front()[2]);
 
         bm.setPosture(i, interpolation);
     }
